@@ -120,6 +120,121 @@ class DeviantPHP {
         }
     }
     
+    function getJournals($username, $offset = 0, $limit = 25) {
+        try {
+            if (!$this->isAuthenticated()) $this->refreshToken();
+            
+            $data = array();
+            $data["access_token"] = $this->access_token;
+            
+            $parameters = [
+                'username' => $username,
+                'offset' => $offset,
+                'limit' => $limit
+            ];
+            
+            $querystring = http_build_query($parameters);
+            $result = json_decode($this->doCurl($this->da_oauth_resource . "browse/user/journals?".$querystring, $data), true);
+            if (!empty($result["error"])) throw new \Exception($result["error_description"]);
+            return $result;
+        } catch(Exception $e) {
+            echo $e->getMessage();
+        }
+    }
+
+    function getDeviation($id) {
+        try {
+            if (!$this->isAuthenticated()) $this->refreshToken();
+            
+            $data = array();
+            $data["access_token"] = $this->access_token;
+            
+            $result = json_decode($this->doCurl($this->da_oauth_resource . "deviation/".$id, $data), true);
+            if (!empty($result["error"])) throw new \Exception($result["error_description"]);
+            return $result;
+        } catch(Exception $e) {
+            echo $e->getMessage();
+        }
+    }
+    
+    function getDeviationComments($id, $offset = 0, $limit = 25, $maxdepth = 1, $commentid = null) {
+        try {
+            if (!$this->isAuthenticated()) $this->refreshToken();
+            
+            $data = array();
+            $data["access_token"] = $this->access_token;
+            
+            $parameters = [
+                'maxdepth' => $maxdepth,
+                'offset' => $offset,
+                'limit' => $limit
+            ];
+            if ($commentid) $parameters['commentid'] = $commentid;
+            
+            $querystring = http_build_query($parameters);
+            //dd("comments/deviation/".$id."?".$querystring);
+            $result = json_decode($this->doCurl($this->da_oauth_resource . "comments/deviation/".$id."?".$querystring, $data), true);        
+            if (!empty($result["error"])) throw new \Exception($result["error_description"]);
+            return $result;
+        } catch(Exception $e) {
+            echo $e->getMessage();
+        }
+    }
+    
+    function getPosts($username, $offset, $limit) {
+        try {
+            if (!$this->isAuthenticated()) $this->refreshToken();
+            
+            $data = array();
+            $data["access_token"] = $this->access_token;
+            
+            $parameters = [
+                'username' => $username,
+                'offset' => $offset,
+                'limit' => $limit
+            ];
+            $querystring = http_build_query($parameters);
+            //dd($this->da_oauth_resource . "collections/C42FD0DA-E062-1553-F2F2-913C12758DEC?".$querystring);
+            $result = json_decode($this->doCurl($this->da_oauth_resource . "collections/C42FD0DA-E062-1553-F2F2-913C12758DEC?".$querystring, $data), true);
+            if (!empty($result["error"])) throw new \Exception($result["error_description"]);
+            return $result;
+        } catch(Exception $e) {
+            echo $e->getMessage();
+        }
+    }
+    
+    function getDeviations($username, $offset, $limit) {
+        try {
+            if (!$this->isAuthenticated()) $this->refreshToken();
+            
+            $data = array();
+            $data["access_token"] = $this->access_token;
+            
+            $result = json_decode($this->doCurl($this->da_oauth_resource . "gallery/all?username=".$username.'&offset='.($offset * $limit).'&limit='.$limit.'&ext_stats=1&ext_published_time=1', $data), true);
+            if (!empty($result["error"])) throw new \Exception($result["error_description"]);
+            return $result;
+        } catch(Exception $e) {
+            echo $e->getMessage();
+        }
+    }
+    
+    function getDeviationMetadata($ids) {
+        try {
+            if (!$this->isAuthenticated()) $this->refreshToken();
+            
+            $data = array();
+            $data["access_token"] = $this->access_token;
+            $querystring = 'ext_submission=false&ext_camera=false&ext_stats=false&ext_collection=false&mature_content=true';
+            foreach($ids as $id) $querystring .= '&deviationids[]='.$id;
+            
+            $result = json_decode($this->doCurl($this->da_oauth_resource . "deviation/metadata?".$querystring, $data), true);
+            if (!empty($result["error"])) throw new \Exception($result["error_description"]);
+            return $result;
+        } catch(Exception $e) {
+            echo $e->getMessage();
+        }
+    }
+    
     function isAuthenticated() {
         try {
             if (empty($this->access_token)) throw new \Exception("The access_token is empty.");
